@@ -103,10 +103,6 @@
                                 選擇顏色
                             </button>
                             <ul class="dropdown-menu" id="color">
-                                <li><a class="dropdown-item" href="#">Space Grey</a></li>
-                                <li><a class="dropdown-item" href="#">Silver</a></li>
-                                <li><a class="dropdown-item" href="#">Rose Gold</a></li>
-                                <li><a class="dropdown-item" href="#">Gold</a></li>
                             </ul>
                         </div>
                     </div>
@@ -185,9 +181,77 @@
                 if (this.status === 200) {
                     const jsonObj = JSON.parse(this.responseText);
                     showIpadAir(jsonObj);
+                    getDropdownMenuList(jsonObj);
                 }
             }
             xhr.send();
+
+            // Get the dropdown menu list from json file, don't show the duplicated item, update the dropdown menus.
+            function getDropdownMenuList(jsonObj) {
+                const products = jsonObj.products;
+                const color = document.getElementById('color');
+                const capacity = document.getElementById('capacity');
+                const network = document.getElementById('network');
+
+                // Get the color list from json file.
+                const colorList = products.map(function(product) {
+                    return product.color;
+                });
+                // Remove the duplicated item.
+                const uniqueColorList = colorList.filter(function(item, index) {
+                    return colorList.indexOf(item) === index;
+                });
+                
+                // Update the dropdown menu.
+                uniqueColorList.forEach(function(color) {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.setAttribute('class', 'dropdown-item');
+                    a.setAttribute('href', '#');
+                    a.textContent = color;
+                    li.appendChild(a);
+                    color.appendChild(li);
+                });
+
+                // Get the capacity list from json file.
+                const capacityList = products.map(function(product) {
+                    return product.storage;
+                });
+                // Remove the duplicated item.
+                const uniqueCapacityList = capacityList.filter(function(item, index) {
+                    return capacityList.indexOf(item) === index;
+                });
+                // Update the dropdown menu.
+                uniqueCapacityList.forEach(function(capacity) {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.setAttribute('class', 'dropdown-item');
+                    a.setAttribute('href', '#');
+                    a.textContent = capacity;
+                    li.appendChild(a);
+                    capacity.appendChild(li);
+                });
+
+                // Get the network list from json file.
+                const networkList = products.map(function(product) {
+                    return product.network;
+                });
+                // Remove the duplicated item.
+                const uniqueNetworkList = networkList.filter(function(item, index) {
+                    return networkList.indexOf(item) === index;
+                });
+                // Update the dropdown menu.
+                uniqueNetworkList.forEach(function(network) {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.setAttribute('class', 'dropdown-item');
+                    a.setAttribute('href', '#');
+                    a.textContent = network;
+                    li.appendChild(a);
+                    network.appendChild(li);
+                });
+
+            }
             
             // This function is event listener for the dropdown menu.
             function showIpadAir(jsonObj) {
@@ -200,61 +264,47 @@
                 const networkLabel = document.getElementById('networkLabel');
                 const img = document.querySelector('.img');
                 const priceLabel = document.getElementById('ipadPrice');
-                
+
                 const width = 600;
                 const height = 400;
 
-                // This is the event listener for the color dropdown menu.
-                color.addEventListener('click', function (e) {
-                    const color = e.target.textContent;
-                    colorLabel.textContent = color;
-                    const capacity = capacityLabel.textContent;
-                    const network = networkLabel.textContent;
-                    const product = products.find(function (product) {
-                        return product.color === color && product.storage === capacity && product.network === network;
+                function updateProduct() {
+                    const selectedColor = colorLabel.textContent;
+                    const selectedCapacity = capacityLabel.textContent;
+                    const selectedNetwork = networkLabel.textContent;
+
+                    const filteredProducts = products.filter(function(product) {
+                        return product.color === selectedColor && product.storage === selectedCapacity && product.network === selectedNetwork;
                     });
-                    if (product) {
-                        const price = product.price;
-                        const picture = product.picture;
+
+                    if (filteredProducts.length > 0) {
+                        const selectedProduct = filteredProducts[0];
+                        const price = selectedProduct.price;
+                        const picture = selectedProduct.picture;
                         priceLabel.textContent = `NT$${price}`;
                         img.innerHTML = `<img src="${picture}" alt="ipad" width=${width} height=${height}>`;
                     }
+                }
+
+                // This is the event listener for the color dropdown menu.
+                color.addEventListener('click', function(e) {
+                    colorLabel.textContent = e.target.textContent;
+                    updateProduct();
                 });
 
                 // This is the event listener for the capacity dropdown menu.
-                capacity.addEventListener('click', function (e) {
-                    const capacity = e.target.textContent;
-                    capacityLabel.textContent = capacity;
-                    const color = colorLabel.textContent;
-                    const network = networkLabel.textContent;
-                    const product = products.find(function (product) {
-                        return product.color === color && product.storage === capacity && product.network === network;
-                    });
-                    if (product) {
-                        const price = product.price;
-                        const picture = product.picture;
-                        priceLabel.textContent = `NT$${price}`;
-                        img.innerHTML = `<img src="${picture}" alt="ipad" width=${width} height=${height}>`;
-                    }
+                capacity.addEventListener('click', function(e) {
+                    capacityLabel.textContent = e.target.textContent;
+                    updateProduct();
                 });
 
                 // This is the event listener for the network dropdown menu.
-                network.addEventListener('click', function (e) {
-                    const network = e.target.textContent;
-                    networkLabel.textContent = network;
-                    const color = colorLabel.textContent;
-                    const capacity = capacityLabel.textContent;
-                    const product = products.find(function (product) {
-                        return product.color === color && product.storage === capacity && product.network === network;
-                    });
-                    if (product) {
-                        const price = product.price;
-                        const picture = product.picture;
-                        priceLabel.textContent = `NT$${price}`;
-                        img.innerHTML = `<img src="${picture}" alt="ipad" width=${width} height=${height}>`;
-                    }
+                network.addEventListener('click', function(e) {
+                    networkLabel.textContent = e.target.textContent;
+                    updateProduct();
                 });
             }
+
 
 
 
