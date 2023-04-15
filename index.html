@@ -99,38 +99,35 @@
                 <div class="row">
                     <div class="col-3">
                         <div class="btn-group-horizontal">
-                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button type="button" class="btn btn-close-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 選擇顏色
                             </button>
                             <ul class="dropdown-menu" id="color">
-                                <li><a class="dropdown-item" href="#">Space Grey</a></li>
-                                <li><a class="dropdown-item" href="#">Silver</a></li>
-                                <li><a class="dropdown-item" href="#">Rose Gold</a></li>
-                                <li><a class="dropdown-item" href="#">Gold</a></li>
                             </ul>
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="btn-group-horizontal">
-                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button type="button" class="btn btn-close-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 選擇容量
                             </button>
-                            <ul class="dropdown-menu" id="capacity">
-                                <li><a class="dropdown-item" href="#">64GB</a></li>
-                                <li><a class="dropdown-item" href="#">256GB</a></li>
+                            <ul class="dropdown-menu" id="storage">
                             </ul>
                         </div>
                     </div>
                     <div class="col-3">
                         <div class="btn-group-horizontal">
-                            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <button type="button" class="btn btn-close-white dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
                                 選擇網路
                             </button>
                             <ul class="dropdown-menu"  id="network">
-                                <li><a class="dropdown-item" href="#">Wi-Fi</a></li>
-                                <li><a class="dropdown-item" href="#">Wi-Fi + Cellular</a></li>
                             </ul>
                         </div>
+                    </div>
+                    <div class="col-3">
+                        <button type="button" class="btn btn-danger" id="clearBtn">
+                            刪除搜尋結果
+                        </button>
                     </div>
                 </div>
 
@@ -140,7 +137,7 @@
                         <label for="color" id="colorLabel"></label>
                     </div>
                     <div class="col-3">
-                        <label for="capacity" id="capacityLabel"></label>
+                        <label for="storage" id="storageLabel"></label>
                     </div>
                     <div class="col-3">
                         <label for="network" id="networkLabel"></label>
@@ -151,7 +148,7 @@
                 <div class="row">
                     <!-- This is to show the filter result -->
                     <div id="color"></div>
-                    <div id="capacity"></div>
+                    <div id="storage"></div>
                     <div id="network"></div>
                     <div class="img"></div>
                     <h3 class="text-body-secondary" id="ipadPrice"></h3>
@@ -175,86 +172,105 @@
             //     },
             //    ]
 
-            // Use xhr to get the JSON file and use the function to show the iPad Air information.
             const url = 'https://raw.githubusercontent.com/Huangkuanrong/FileStorage/main/ipadair.json';
+            const colorDropdown = document.getElementById('color');
+            const storageDropdown = document.getElementById('storage');
+            const networkDropdown = document.getElementById('network');
+            const colorLabel = document.getElementById('colorLabel');
+            const storageLabel = document.getElementById('storageLabel');
+            const networkLabel = document.getElementById('networkLabel');
+            const img = document.querySelector('.img');
+            const priceLabel = document.getElementById('ipadPrice');
+            const width = 600;
+            const height = 400;
 
-            // Create a new XMLHttpRequest object.
-            const xhr = new XMLHttpRequest();
-            xhr.open('GET', url, true);
-            xhr.onload = function () {
-                if (this.status === 200) {
-                    const jsonObj = JSON.parse(this.responseText);
-                    showIpadAir(jsonObj);
+            // Create a reusable function for updating the dropdown menus.
+            function updateDropdownMenu(list, element) {
+            const uniqueList = [...new Set(list)];
+            element.innerHTML = "";
+            uniqueList.forEach(item => {
+                const li = document.createElement('li');
+                const a = document.createElement('a');
+                a.setAttribute('class', 'dropdown-item');
+                a.setAttribute('href', '#');
+                a.textContent = item;
+                li.appendChild(a);
+                element.appendChild(li);
+            });
+            }
+
+            // Get the data from the JSON file using fetch().
+            fetch(url)
+            .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+            })
+            .then(data => {
+            // Update the dropdown menus.
+            const products = data.products;
+            updateDropdownMenu(products.map(product => product.color), colorDropdown);
+            updateDropdownMenu(products.map(product => product.storage), storageDropdown);
+            updateDropdownMenu(products.map(product => product.network), networkDropdown);
+
+            // Add event listeners to update the selected product.
+            function updateProduct() {
+                const selectedColor = colorLabel.textContent;
+                const selectedStorage = storageLabel.textContent;
+                const selectedNetwork = networkLabel.textContent;
+
+                const filteredProducts = products.filter(product => (
+                product.color === selectedColor &&
+                product.storage === selectedStorage &&
+                product.network === selectedNetwork
+                ));
+
+                if (filteredProducts.length > 0) {
+                const selectedProduct = filteredProducts[0];
+                const price = selectedProduct.price;
+                const picture = selectedProduct.picture;
+                priceLabel.textContent = `NT$${price}`;
+                img.innerHTML = `<img src="${picture}" alt="ipad" width=${width} height=${height}>`;
                 }
             }
-            xhr.send();
-            
-            // This function is event listener for the dropdown menu.
-            function showIpadAir(jsonObj) {
-                const products = jsonObj.products;
-                const color = document.getElementById('color');
-                const capacity = document.getElementById('capacity');
-                const network = document.getElementById('network');
-                const colorLabel = document.getElementById('colorLabel');
-                const capacityLabel = document.getElementById('capacityLabel');
-                const networkLabel = document.getElementById('networkLabel');
-                const img = document.querySelector('.img');
-                const priceLabel = document.getElementById('ipadPrice');
-                
-                const width = 600;
-                const height = 400;
 
-                // This is the event listener for the color dropdown menu.
-                color.addEventListener('click', function (e) {
-                    const color = e.target.textContent;
-                    colorLabel.textContent = color;
-                    const capacity = capacityLabel.textContent;
-                    const network = networkLabel.textContent;
-                    const product = products.find(function (product) {
-                        return product.color === color && product.storage === capacity && product.network === network;
-                    });
-                    if (product) {
-                        const price = product.price;
-                        const picture = product.picture;
-                        priceLabel.textContent = `NT$${price}`;
-                        img.innerHTML = `<img src="${picture}" alt="ipad" width=${width} height=${height}>`;
-                    }
-                });
+            // Clear all dropdown menus when "Clear" button is clicked.
+            const clearBtn = document.getElementById("clearBtn");
+            clearBtn.addEventListener('click', () => {
+                colorLabel.textContent = "";
+                storageLabel.textContent = "";
+                networkLabel.textContent = "";
+                priceLabel.textContent = "";
+                img.innerHTML = "";
+                updateProduct();
+            });
 
-                // This is the event listener for the capacity dropdown menu.
-                capacity.addEventListener('click', function (e) {
-                    const capacity = e.target.textContent;
-                    capacityLabel.textContent = capacity;
-                    const color = colorLabel.textContent;
-                    const network = networkLabel.textContent;
-                    const product = products.find(function (product) {
-                        return product.color === color && product.storage === capacity && product.network === network;
-                    });
-                    if (product) {
-                        const price = product.price;
-                        const picture = product.picture;
-                        priceLabel.textContent = `NT$${price}`;
-                        img.innerHTML = `<img src="${picture}" alt="ipad" width=${width} height=${height}>`;
-                    }
-                });
+            // Update the selected product when a dropdown item is clicked.
+            colorDropdown.addEventListener('click', e => {
+                colorLabel.textContent = e.target.textContent;
+                updateProduct();
+            });
 
-                // This is the event listener for the network dropdown menu.
-                network.addEventListener('click', function (e) {
-                    const network = e.target.textContent;
-                    networkLabel.textContent = network;
-                    const color = colorLabel.textContent;
-                    const capacity = capacityLabel.textContent;
-                    const product = products.find(function (product) {
-                        return product.color === color && product.storage === capacity && product.network === network;
-                    });
-                    if (product) {
-                        const price = product.price;
-                        const picture = product.picture;
-                        priceLabel.textContent = `NT$${price}`;
-                        img.innerHTML = `<img src="${picture}" alt="ipad" width=${width} height=${height}>`;
-                    }
-                });
-            }
+            storageDropdown.addEventListener('click', e => {
+                storageLabel.textContent = e.target.textContent;
+                updateProduct();
+            });
+
+            networkDropdown.addEventListener('click', e => {
+                networkLabel.textContent = e.target.textContent;
+                updateProduct();
+            });
+            })
+            .catch(error => {
+            console.error('Error fetching data:', error);
+            // Display an error message to the user.
+            const errorMessage = document.createElement('p');
+            errorMessage.textContent = 'Sorry, there was an error fetching the data. Please try again later.';
+            document.body.appendChild(errorMessage);
+            });
+
+
 
 
 
